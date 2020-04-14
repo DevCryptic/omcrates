@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>OMC Rates</title>
+    <meta content="OmniCoin, OMC, Omni, OmniCoin Ticker, OMC Ticker, Omni Ticker, Omnicoin Rates, OMC Rates, DogeCoin, Doge, LiteCoin, LTC, DASH Coin, DASH" name="keywords">
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script type="text/javascript" >
+        var baseCurrency = 'omc';
+        var btcRate, btcSource;
+        var currencies = ['omc','usd', 'btc', 'ltc', 'doge', 'dash','gbp', 'eur'];
+        function getRate(amount, from, to) {
+            if (from === to) return amount;
+            if (from === 'btc') return Math.round(amount * 100000000/btcRate[to])/100000000;
+            if (to === 'btc') return Math.round(amount * btcRate[from] * 100000000)/100000000;
+            return getRate(getRate(amount, from, 'btc'),'btc', to);
+        }
+        function pull(ready) {
+            $.getJSON( "rates.json", function( json ) {
+                btcRate = json; 
+				update();
+				if (typeof ready !== 'undefined') {
+                    $('.currency').on('input', update);
+                    $('select[name="exchanges"]').change(update);
+                }
+            });
+        }
+        function update() {
+            btSource = $('select[name="exchanges"]').val();
+            btcRate['usd'] = 1/btcRate['usd'+ btSource];
+            amount = $('#'+baseCurrency).val();
+            for (i = 0; i < currencies.length; i++) {
+                if (baseCurrency !== currencies[i]) $('#'+currencies[i]).val(getRate(amount, baseCurrency, currencies[i]));
+            }
+        }
+        $(document).ready(
+                function() {
+                    $('.currency').focus(function() { baseCurrency = $(this).attr('id'); });
+                    $('select[name="usdgbp"]').change(function () { 
+                        $('.usdgbp').each(function() { 
+                            ($(this).hasClass($('select[name="usdgbp"]').val()))?$(this).show():$(this).hide(); 
+                            baseCurrency = (baseCurrency === 'usd' || baseCurrency === 'gbp' || baseCurrency === 'eur')?$('select[name="usdgbp"]').val():baseCurrency;
+                        });
+                    });
+                    pull(true);
+                    setInterval(pull, 10000);
+                });
+    </script>
+</head>
+<body>
+<div id="wrap" align="center">
+    <div id="header">
+	<span id="o">OMC</span>
+	<span id="r">Rates</span>
+	<div id="tag">Updates automatically every few minutes</div>
+    </div>
+    <br />
+  <div class="half">
+    <div class="box">
+    	<div class="title">OMC</div>
+        <input type="text" id="omc" class="currency bordered" size="13" value="1" name="1" />
+    </div>
+    <div class="box">
+    	<div class="title">BTC</div>
+        <input type="text" id="btc" class="currency bordered" size="13" />
+    </div>
+    <div class="box usdgbp usd">
+        <div class="title">USD</div>
+        <input type="text" id="usd" class="currency bordered" size="13"  />
+    </div>
+    <div class="box usdgbp gbp" style="display:none;">
+        <div class="title">GBP</div>
+        <input type="text" id="gbp" class="currency bordered" size="13"  />
+    </div>
+    <div class="box usdgbp eur" style="display:none;">
+        <div class="title">EUR</div>
+        <input type="text" id="eur" class="currency bordered" size="13"  />
+    </div>
+  </div>
+  <div class="half">
+    <div class="box">
+    	<div class="title">DASH</div>
+        <input type="text" id="dash" class="currency bordered" size="13" />
+    </div>
+    <div class="box">
+    	<div class="title">LTC</div>
+        <input type="text" id="ltc" class="currency bordered" size="13" />
+    </div>
+    <div class="box">
+    	<div class="title">DOGE</div>
+        <input type="text" id="doge" class="currency bordered" size="13" />
+    </div>
+  </div>
+    <span class="credit">Created by </span><span class="to">Cryptic</span><br />
+    <span class="credit">Designed by </span><span class="to">Flashy</span>
+    <div style="position: fixed; bottom: 0px; right: 15px;">BTC Exchange Rate:
+        <select name="exchanges">
+            <option value="btce">BTCe</option>
+            <option value="coinbase">CoinBase</option>
+            <option value="bitstamp">BitStamp</option>
+            <!-- Additional exchanges can be added by adding a new option here. -->
+        </select>
+        &nbsp;&nbsp;Currency:
+        <select name="usdgbp">
+            <option value="usd" selected>USD</option>
+            <option value="gbp">GBP</option>
+            <option value="eur">EUR</option>
+
+        </select>
+
+    </div>
+</div>
+</body>
+</html>
+
